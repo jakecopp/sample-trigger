@@ -37,8 +37,7 @@ int main(int argc, char* argv[]) {
     ///////////////// INITIALIZATION ////////////////
     // Input File
     AudioFile<double> infile;
-    bool loadedOK = infile.load (filename);
-    if (!loadedOK) {
+    if (!infile.load (filename)) {
         cerr << "File not found!" << endl;
         return -1;
     }
@@ -48,52 +47,48 @@ int main(int argc, char* argv[]) {
 
     // Sample File
     AudioFile<double> samplefile;
-    loadedOK = samplefile.load (samplename);
-    if (!loadedOK) {
+    if (!samplefile.load (samplename)) {
         cerr << "File not found!" << endl;
         return -1;
     }
     cout << "File: " << samplename << endl;
-
     samplefile.printSummary();
 
-    // Output file
-    AudioFile<float> outfile;
-    outfile.setNumChannels (infile.getNumChannels());
-    outfile.setNumSamplesPerChannel (infile.getNumSamplesPerChannel());
-
-    // convert release cooldown time from ms to samples using sample rate 
     int millisecondsCooldown = 50;
-    int samplesCooldown = (int) (((double)infile.getSampleRate() / 1000.0) * (double) millisecondsCooldown);
-    // cout << samplesCooldown << endl;
+    double threshold = 0.05;
+    
+    processTrigger(millisecondsCooldown, threshold, infile, samplefile, "output-audio-file.wav");
+    
+    // int samplesCooldown = (int) (((double)infile.getSampleRate() / 1000.0) * (double) millisecondsCooldown);
+    // // cout << samplesCooldown << endl;
 
-    ///////////////// PROCESS ////////////////
+    // ///////////////// PROCESS ////////////////
 
-    int cooldown = 0;
-    int triggerCount = 0;
-    for (int channel = 0; channel < infile.getNumChannels(); channel++) {
-        for (int i = 0; i < infile.getNumSamplesPerChannel(); i++) {
-                double currentSample = infile.samples[channel][i]; 
+    // int cooldown = 0;
+    // int triggerCount = 0;
+    // for (int channel = 0; channel < infile.getNumChannels(); channel++) {
+    //     for (int i = 0; i < infile.getNumSamplesPerChannel(); i++) {
+    //             double currentSample = infile.samples[channel][i]; 
 
-                if (currentSample >= 0.05 && cooldown == 0) {
-                    applySample(i, channel, samplefile, outfile);
-                    triggerCount++;
+    //             if (currentSample >= 0.05 && cooldown == 0) {
+    //                 applySample(i, channel, samplefile, outfile);
+    //                 triggerCount++;
                     
-                    cooldown = samplesCooldown;
-                } else {
-                    if (cooldown > 0) {
-                        cooldown--;
-                    }
-                }
-            }
-    }
-    cout << triggerCount << " samples triggered accross " << infile.getNumChannels() << " channel(s)." << endl;
-    ///////////////// WRITE TO DISK ////////////////
-    string outputFilePath = "output-audio-file.wav"; 
-    outfile.save (outputFilePath, AudioFileFormat::Wave);
-    cout << "File: " << outputFilePath << endl;
+    //                 cooldown = samplesCooldown;
+    //             } else {
+    //                 if (cooldown > 0) {
+    //                     cooldown--;
+    //                 }
+    //             }
+    //         }
+    // }
+    // cout << triggerCount << " samples triggered accross " << infile.getNumChannels() << " channel(s)." << endl;
+    // ///////////////// WRITE TO DISK ////////////////
+    // string outputFilePath = "output-audio-file.wav"; 
+    // outfile.save (outputFilePath, AudioFileFormat::Wave);
+    // cout << "File: " << outputFilePath << endl;
 
-    outfile.printSummary();
+    // outfile.printSummary();
 
 
 }
@@ -110,6 +105,8 @@ applySample method : method that applies the sample to the output track in one g
     regards to where the transient is
 
 
+
+basic transient detection vs advanced (using average?)
 
 Find first transient:
 
