@@ -1,0 +1,13 @@
+linndrum/
+*.wav
+*.bash
+*.dSYM
+sample_trigger
+
+*.DS_Store
+
+!main.cpp
+!AudioFile.h
+!sample_trigger.h
+!sample_trigger.cpp
+!Makefile
