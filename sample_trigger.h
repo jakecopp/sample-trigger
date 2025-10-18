@@ -1,6 +1,13 @@
 #include "AudioFile.h"
 
-
 int detectTransient(AudioFile<double>& samplefile);
-void applySample(int index, int channel, AudioFile<double>& samplefile, AudioFile<float>& outfile);
+
+int detectFirstTransient(AudioFile<double>& samplefile);
+
+bool isSameSign(double a, double b);
+
+double getAverageAmplitude(AudioFile<double>& file);
+
+void applySample(int index, int channel, int transientOffset, AudioFile<double>& samplefile, AudioFile<float>& outfile);
+
 void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double>& infile, AudioFile<double>& samplefile, std::string outputFileName);
