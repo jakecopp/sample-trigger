@@ -1,13 +1,16 @@
 linndrum/
+example-audio/
 *.wav
 *.bash
 *.dSYM
-sample_trigger
+sample_trigger_cli
+sample_trigger_gui
 
 *.DS_Store
+*.dSYM
 
-!main.cpp
-!AudioFile.h
-!sample_trigger.h
-!sample_trigger.cpp
-!Makefile
+# !main.cpp
+# !AudioFile.h
+# !sample_trigger.h
+# !sample_trigger.cpp
+# !Makefile
