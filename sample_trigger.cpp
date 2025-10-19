@@ -78,8 +78,6 @@ double getAverageAmplitude(AudioFile<double>& file) {
     return sum / (double) file.getNumSamplesPerChannel();
 }
 
-
-
 void applySample(int index, int channel, int transientOffset, AudioFile<double>& samplefile, AudioFile<float>& outfile) {
     int startIndex = index - transientOffset;
     for (int i = 0; i < samplefile.getNumSamplesPerChannel(); i++) {
@@ -98,7 +96,7 @@ void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double
     outfile.setNumSamplesPerChannel (infile.getNumSamplesPerChannel());
     // Detect transient
     int transientOffset = detectFirstTransient(samplefile);
-    cout << transientOffset << endl;
+    // cout << transientOffset << endl;
     // Apply samples
     int cooldown = 0;
     int triggerCount = 0;
@@ -124,4 +122,25 @@ void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double
     // cout << "File: " << outputFilePath << endl;
     // outfile.printSummary();
 
+}
+
+int triggerSamples(int millisecondsCooldown, double threshold, std::string filename, std::string samplename, std::string outfilename) {
+    // Input File
+    AudioFile<double> infile;
+    if (!infile.load (filename)) {
+        cerr << "File not found!" << endl;
+        return -1;
+    }
+    // cout << "File: " << filename << endl;
+    // infile.printSummary();
+    // Sample File
+    AudioFile<double> samplefile;
+    if (!samplefile.load (samplename)) {
+        cerr << "File not found!" << endl;
+        return -1;
+    }
+    // cout << "File: " << samplename << endl;
+    // samplefile.printSummary();
+    processTrigger(millisecondsCooldown, threshold, infile, samplefile, outfilename);
+    return 0;
 }

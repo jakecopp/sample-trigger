@@ -6,11 +6,9 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
-
     ///////////////// ARGUMENTS ////////////////
     string filename = "";
     string samplename = "";
-    
 
     int a = 1;
     while (a < argc) {
@@ -31,32 +29,13 @@ int main(int argc, char* argv[]) {
         return -1;
     }
     
-
-
     ///////////////// INITIALIZATION ////////////////
-    // Input File
-    AudioFile<double> infile;
-    if (!infile.load (filename)) {
-        cerr << "File not found!" << endl;
-        return -1;
-    }
-    // cout << "File: " << filename << endl;
-    // infile.printSummary();
-
-    // Sample File
-    AudioFile<double> samplefile;
-    if (!samplefile.load (samplename)) {
-        cerr << "File not found!" << endl;
-        return -1;
-    }
-    // cout << "File: " << samplename << endl;
-    // samplefile.printSummary();
 
     int millisecondsCooldown = 50;
     double threshold = 0.05;
-    
-    processTrigger(millisecondsCooldown, threshold, infile, samplefile, "output-audio-file.wav");
+    string outputfilename = "output-audio-file.wav";
 
+    return triggerSamples(millisecondsCooldown, threshold, filename, samplename, outputfilename);
 }
 
 /*
