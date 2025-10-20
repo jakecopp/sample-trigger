@@ -5,6 +5,7 @@ example-audio/
 *.dSYM
 sample_trigger_cli
 sample_trigger_gui
+*.txt
 
 *.DS_Store
 *.dSYM

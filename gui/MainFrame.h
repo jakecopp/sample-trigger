@@ -23,13 +23,18 @@ private:
     const int millisecondsCooldownDefaultValue = 50;
     const std::string outputFilePathDefaultValue = "output-audio.wav";
 
+    wxStaticText* sourceFileLabel;
+    wxStaticText* sampleFileLabel;
+    wxStaticText* outputFileLabel;
+
     // wxSpinCtrl spinCtrl;
     void OnGainSliderChanged(wxCommandEvent& evt);
     void OnSelectSourceFileButtonClicked(wxCommandEvent& evt);
     void OnSelectSampleFileButtonClicked(wxCommandEvent& evt);
     void OnTriggerButtonClicked(wxCommandEvent& evt);
     void OnCooldownSpinCtrlChanged(wxSpinEvent& evt);
-    void OnOutputPathChanged(wxCommandEvent& evt);
+    // void OnOutputPathChanged(wxCommandEvent& evt);
+    void OnOutputPathButtonClicked(wxCommandEvent& evt);
 
 
     void setMillisecondsCooldown(int m) {

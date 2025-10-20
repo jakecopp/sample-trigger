@@ -40,8 +40,7 @@ int detectFirstTransient(AudioFile<double>& file) {
 
     int i = 0;
     while (i < file.getNumSamplesPerChannel() - 1) {
-
-        while ((i < file.getNumSamplesPerChannel() - 1) && isSameSign(file.samples[channel][i], file.samples[channel][i + 1])) {
+        while (nextSampleCrossesZero(i, channel, file)) {
             double currentSample = file.samples[0][i]; 
 
             if (abs(currentSample) > localmax) {
@@ -100,9 +99,13 @@ void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double
     // Apply samples
     int cooldown = 0;
     int triggerCount = 0;
+    double curPeak = 0.0;
     for (int channel = 0; channel < infile.getNumChannels(); channel++) {
         for (int i = 0; i < infile.getNumSamplesPerChannel(); i++) {
             double currentSample = infile.samples[channel][i]; 
+            if (currentSample > curPeak) {
+                curPeak = currentSample;
+            }
             if (currentSample >= threshold && cooldown == 0) {
                 applySample(i, channel, transientOffset, samplefile, outfile);
                 triggerCount++;
@@ -111,6 +114,9 @@ void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double
                 if (cooldown > 0) {
                     cooldown--;
                 }
+            }
+            if (nextSampleCrossesZero(i, channel, infile)) {
+                curPeak = 0;
             }
         }
     }
@@ -143,4 +149,13 @@ int triggerSamples(int millisecondsCooldown, double threshold, std::string filen
     // samplefile.printSummary();
     processTrigger(millisecondsCooldown, threshold, infile, samplefile, outfilename);
     return 0;
+}
+
+double decibelsFromGain(double gain) {
+    return std::log10 (gain) * 20.0;
+}
+
+
+bool nextSampleCrossesZero(int index, int channel, AudioFile<double>& file) {
+    return (index < file.getNumSamplesPerChannel() - 1) && isSameSign(file.samples[channel][index], file.samples[channel][index + 1]);
 }

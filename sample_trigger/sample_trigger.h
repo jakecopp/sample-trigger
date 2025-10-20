@@ -13,3 +13,7 @@ void applySample(int index, int channel, int transientOffset, AudioFile<double>&
 void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double>& infile, AudioFile<double>& samplefile, std::string outputFileName);
 
 int triggerSamples(int millisecondsCooldown, double threshold, std::string filename, std::string samplename, std::string outfilename);
+
+double decibelsFromGain(double gain);
+
+bool nextSampleCrossesZero(int index, int channel, AudioFile<double>& file);
