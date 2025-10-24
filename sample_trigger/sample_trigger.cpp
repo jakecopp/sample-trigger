@@ -5,11 +5,13 @@ using namespace std;
 int detectTransient(AudioFile<double>& samplefile) {
     double max = 0;
     int transIndex = 0;
-    for (int i = 0; i < samplefile.getNumSamplesPerChannel(); i++) {
-        double currentSample = samplefile.samples[0][i]; 
-        if (abs(currentSample) > max) {
-            max = abs(currentSample);
-            transIndex = i;
+    for (int channel = 0; channel < samplefile.getNumChannels(); channel++) {
+        for (int i = 0; i < samplefile.getNumSamplesPerChannel(); i++) {
+            double currentSample = samplefile.samples[channel][i]; 
+            if (abs(currentSample) > max) {
+                max = abs(currentSample);
+                transIndex = i;
+            }
         }
     }
     return transIndex;
@@ -36,7 +38,7 @@ int detectFirstTransient(AudioFile<double>& file) {
     // double prevLocalmax = -1;
     int channel = 0;
 
-    // double averageAmplitude = getAverageAmplitude(file);
+    double averageAmplitude = getAverageAmplitude(file);
 
     int i = 0;
     while (i < file.getNumSamplesPerChannel() - 1) {
@@ -55,9 +57,9 @@ int detectFirstTransient(AudioFile<double>& file) {
             maxIndex = localmaxIndex;
             localmax = 0;
         } else {
-            // if (max >= averageAmplitude) {
+            if (max >= averageAmplitude) {   // detect first decreasing peak above the average 
                 break;
-            // }
+            }
         }
         i++;
     }
@@ -69,20 +71,14 @@ bool isSameSign(double a, double b) {
     return ((a < 0) == (b < 0));  
 }
 
-double getAverageAmplitude(AudioFile<double>& file) {
-    double sum = 0;
-    for (int i = 0; i < file.getNumSamplesPerChannel(); i++) {
-        sum += file.samples[0][i];
-    }
-    return sum / (double) file.getNumSamplesPerChannel();
-}
-
-void applySample(int index, int channel, int transientOffset, AudioFile<double>& samplefile, AudioFile<float>& outfile) {
+void applySample(int index, int transientOffset, AudioFile<double>& samplefile, AudioFile<float>& outfile) {
     int startIndex = index - transientOffset;
     for (int i = 0; i < samplefile.getNumSamplesPerChannel(); i++) {
-        if (startIndex + i >= 0 && startIndex + i < outfile.getNumSamplesPerChannel()) {
-            outfile.samples[channel][startIndex + i] = outfile.samples[channel][startIndex + i] + samplefile.samples[channel % samplefile.getNumChannels()][i]; // 0's for mono, can be upgraded to multichannel
-        }   
+        for (int channel = 0; channel < samplefile.getNumChannels(); channel++) {
+            if (startIndex + i >= 0 && startIndex + i < outfile.getNumSamplesPerChannel()) {
+                outfile.samples[channel][startIndex + i] = outfile.samples[channel][startIndex + i] + samplefile.samples[channel][i]; 
+            }   
+        }
     }
 }
 
@@ -91,10 +87,10 @@ void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double
     int samplesCooldown = (int) (((double)infile.getSampleRate() / 1000.0) * (double) millisecondsCooldown);
     // Prepare output 
     AudioFile<float> outfile;
-    outfile.setNumChannels (infile.getNumChannels());
+    outfile.setNumChannels (samplefile.getNumChannels()); // outfile and sample should have same number of channels
     outfile.setNumSamplesPerChannel (infile.getNumSamplesPerChannel());
     // Detect transient
-    int transientOffset = detectFirstTransient(samplefile);
+    int transientOffset = detectTransient(samplefile);
     // cout << transientOffset << endl;
     // Apply samples
     int cooldown = 0;
@@ -102,12 +98,12 @@ void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double
     double curPeak = 0.0;
     for (int channel = 0; channel < infile.getNumChannels(); channel++) {
         for (int i = 0; i < infile.getNumSamplesPerChannel(); i++) {
-            double currentSample = infile.samples[channel][i]; 
+            double currentSample = infile.samples[channel][i];  // detects only mono input or left channel only
             if (currentSample > curPeak) {
                 curPeak = currentSample;
             }
             if (currentSample >= threshold && cooldown == 0) {
-                applySample(i, channel, transientOffset, samplefile, outfile);
+                applySample(i, transientOffset, samplefile, outfile);
                 triggerCount++;
                 cooldown = samplesCooldown;
             } else {
@@ -119,7 +115,11 @@ void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double
                 curPeak = 0;
             }
         }
+        if (triggerCount > 0) {
+            break;
+        }
     }
+
     // // Save output as
     string outputFilePath = outputFileName; 
     outfile.save (outputFilePath, AudioFileFormat::Wave);
@@ -158,4 +158,17 @@ double decibelsFromGain(double gain) {
 
 bool nextSampleCrossesZero(int index, int channel, AudioFile<double>& file) {
     return (index < file.getNumSamplesPerChannel() - 1) && isSameSign(file.samples[channel][index], file.samples[channel][index + 1]);
+}
+
+double getAverageAmplitude(AudioFile<double>& file) {
+    double sum = 0;
+    for (int channel = 0; channel < file.getNumChannels(); channel++) {
+        for (int i = 0; i < file.getNumSamplesPerChannel(); i++) {
+            double currentSample = file.samples[channel][i]; 
+            if (currentSample > 0)
+                sum += abs(currentSample);
+        }
+    }
+
+    return sum / (double) (file.getNumChannels() * file.getNumSamplesPerChannel());
 }
