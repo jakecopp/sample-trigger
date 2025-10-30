@@ -2,6 +2,8 @@
 
 int detectTransient(AudioFile<double>& samplefile);
 
+int detectTransient(AudioFile<double>& samplefile, int start, int end);
+
 int detectFirstTransient(AudioFile<double>& samplefile);
 
 bool isSameSign(double a, double b);

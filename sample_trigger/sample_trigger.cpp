@@ -16,20 +16,23 @@ int detectTransient(AudioFile<double>& samplefile) {
     }
     return transIndex;
 }
-/*
-Find first transient:
-max = 0
-localmax = 0
 
-while cur samples -> 0 to n-2
-    do while sign is the same for cur, cur+1
-        if abs(cur) > local max
-            localmax = cur
-    if localmax > max
-        max = localmax
-        localmax = 0
-    else break
-*/
+int detectTransient(AudioFile<double>& file, int start, int end) {
+    double max = 0;
+    int transIndex = 0;
+    for (int channel = 0; channel < file.getNumChannels(); channel++) {
+        for (int i = start; i < end; i++) {
+            double currentSample = file.samples[channel][i]; 
+            if (abs(currentSample) > max) {
+                max = abs(currentSample);
+                transIndex = i;
+            }
+        }
+    }
+    return transIndex;
+}
+
+
 int detectFirstTransient(AudioFile<double>& file) {
     double max = 0;
     int maxIndex = 0;
@@ -90,7 +93,7 @@ void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double
     outfile.setNumChannels (samplefile.getNumChannels()); // outfile and sample should have same number of channels
     outfile.setNumSamplesPerChannel (infile.getNumSamplesPerChannel());
     // Detect transient
-    int transientOffset = detectTransient(samplefile);
+    int sampleTransientOffset = detectTransient(samplefile);
     // cout << transientOffset << endl;
     // Apply samples
     int cooldown = 0;
@@ -103,7 +106,8 @@ void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double
                 curPeak = currentSample;
             }
             if (currentSample >= threshold && cooldown == 0) {
-                applySample(i, transientOffset, samplefile, outfile);
+                int sourceTransientOffset = detectTransient(infile, i, i + samplesCooldown);
+                applySample(sourceTransientOffset, sampleTransientOffset, samplefile, outfile);
                 triggerCount++;
                 cooldown = samplesCooldown;
             } else {
