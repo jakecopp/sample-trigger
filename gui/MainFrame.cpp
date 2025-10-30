@@ -10,7 +10,8 @@ enum IDs {
     SAMPLE_FILE_BUTTON_ID = 4,
     TRIGGER_BUTTON_ID = 5,
     COOLDOWN_SPIN_CTRL = 6,
-    OUTPUT_PATH_BUTTON_ID = 8
+    OUTPUT_PATH_BUTTON_ID = 8,
+    VELOCITY_CHECKBOX_ID = 9
 };
 
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame) 
@@ -20,18 +21,22 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_SLIDER(GAIN_SLIDER_ID, MainFrame::OnGainSliderChanged)
     EVT_SPINCTRL(COOLDOWN_SPIN_CTRL, MainFrame::OnCooldownSpinCtrlChanged)
     EVT_BUTTON(OUTPUT_PATH_BUTTON_ID, MainFrame::OnOutputPathButtonClicked)
+    EVT_CHECKBOX(VELOCITY_CHECKBOX_ID, MainFrame::OnVelocityCheckBoxClicked)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr, wxID_ANY, title) {
-    millisecondsCooldown = 50;
-    gainThreshold = 0.05;
+    millisecondsCooldown = millisecondsCooldownDefaultValue;
+    gainThreshold = 0.125;
     outputFilePath = outputFilePathDefaultValue;
+    matchVelocity = false;
 
     wxPanel* panel = new wxPanel(this);
     wxButton* selectSourceFileButton = new wxButton(panel, SOURCE_FILE_BUTTON_ID, "Open Source File", wxPoint(20, 30), wxSize(-1, -1));
     sourceFileLabel = new wxStaticText(panel, wxID_ANY, "No file selected", wxPoint(150, 30), wxSize(-1, -1));
+
     wxButton* selectSampleFileButton = new wxButton(panel, SAMPLE_FILE_BUTTON_ID, "Open Sample File", wxPoint(20, 60), wxSize(-1, -1));
     sampleFileLabel = new wxStaticText(panel, wxID_ANY, "No file selected", wxPoint(150, 60), wxSize(-1, -1));
+
     wxButton* outputPathButton = new wxButton(panel, OUTPUT_PATH_BUTTON_ID, "Save output as", wxPoint(20, 90), wxSize(-1, -1));
     outputFileLabel = new wxStaticText(panel, wxID_ANY, outputFilePathDefaultValue, wxPoint(150, 90), wxSize(-1, -1));
 
@@ -39,6 +44,8 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr, wxID_ANY, title) {
     wxStaticText* text1 = new wxStaticText(panel, wxID_ANY, "Release Time (ms)", wxPoint(20, 130), wxSize(-1, -1));
     wxSpinCtrl spinCtrl = new wxSpinCtrl(panel, COOLDOWN_SPIN_CTRL, "Release", wxPoint(20, 150), wxSize(100, -1), wxSP_ARROW_KEYS, millisecondsCooldownRangeMin, millisecondsCooldownRangeMax, millisecondsCooldownDefaultValue);
     
+    wxCheckBox* velocityCheckBox = new wxCheckBox(panel, VELOCITY_CHECKBOX_ID, "Match Velocity", wxPoint(20, 200));
+
     wxStaticText* text2 = new wxStaticText(panel, wxID_ANY, "Gain Threshold (dB)", wxPoint(150, 130), wxSize(-1, -1));
     wxStaticText* text5 = new wxStaticText(panel, wxID_ANY, "  6 -", wxPoint(175, 150), wxSize(-1, -1), wxALIGN_RIGHT);
     wxStaticText* text3 = new wxStaticText(panel, wxID_ANY, "  0 -", wxPoint(175, 195), wxSize(-1, -1), wxALIGN_RIGHT);
@@ -99,13 +106,14 @@ void MainFrame::OnTriggerButtonClicked(wxCommandEvent& evt) {
 
     wxLogStatus("Triggering samples...");
 
-    triggerSamples(millisecondsCooldown, gainThreshold, false, sourceFilePath, sampleFilePath, outputFilePath);
+    triggerSamples(millisecondsCooldown, gainThreshold, matchVelocity, sourceFilePath, sampleFilePath, outputFilePath);
 
     std::cout << sourceFilePath << std::endl;
     std::cout << sampleFilePath << std::endl;
     std::cout << gainThreshold << std::endl;
     std::cout << millisecondsCooldown << std::endl;
     std::cout << outputFilePath << std::endl;
+    std::cout << "Velocity: " << matchVelocity << std::endl;
 
     wxLogStatus("Done.");
 
@@ -126,4 +134,15 @@ void MainFrame::OnOutputPathButtonClicked(wxCommandEvent& evt) {
     }
     
 }
+
+void MainFrame::OnVelocityCheckBoxClicked(wxCommandEvent& evt) {
+    toggleMatchVelocity();
+
+    if (matchVelocity) {
+        wxLogStatus("Matching velocity");
+    } else {
+        wxLogStatus("Ignoring velocity");
+    }
+}
+
 

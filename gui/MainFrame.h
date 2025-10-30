@@ -13,6 +13,7 @@ private:
     std::string sourceFilePath;
     std::string sampleFilePath;
     std::string outputFilePath;
+    bool matchVelocity;
 
     const int gainRangeMin = 1;
     const int gainRangeMax = 2000;
@@ -35,6 +36,7 @@ private:
     void OnCooldownSpinCtrlChanged(wxSpinEvent& evt);
     // void OnOutputPathChanged(wxCommandEvent& evt);
     void OnOutputPathButtonClicked(wxCommandEvent& evt);
+    void OnVelocityCheckBoxClicked(wxCommandEvent& evt);
 
 
     void setMillisecondsCooldown(int m) {
@@ -49,8 +51,13 @@ private:
     void setSampleFilePath(wxString s) {
         sampleFilePath = s.ToStdString();;
     }
-     void setOutputFilePath(wxString s) {
+    void setOutputFilePath(wxString s) {
         outputFilePath = s.ToStdString();;
     }
+
+    void toggleMatchVelocity() {
+        matchVelocity = !matchVelocity;
+    }
+
     wxDECLARE_EVENT_TABLE();
 };
