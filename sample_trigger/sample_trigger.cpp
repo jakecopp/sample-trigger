@@ -85,7 +85,22 @@ void applySample(int index, int transientOffset, AudioFile<double>& samplefile, 
     }
 }
 
-void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double>& infile, AudioFile<double>& samplefile, string outputFileName) {
+void applySampleWithVelocity(int index, int transientOffset, AudioFile<double>& samplefile, AudioFile<float>& outfile, double peakValue) {
+    int startIndex = index - transientOffset;
+    double t = samplefile.samples[0][transientOffset];  //only works for mono
+
+
+    for (int i = 0; i < samplefile.getNumSamplesPerChannel(); i++) {
+        for (int channel = 0; channel < samplefile.getNumChannels(); channel++) {
+            if (startIndex + i >= 0 && startIndex + i < outfile.getNumSamplesPerChannel()) {
+                double outValue = (samplefile.samples[channel][i] / t) * peakValue;
+                outfile.samples[channel][startIndex + i] = outfile.samples[channel][startIndex + i] + outValue; 
+            }   
+        }
+    }
+}
+
+void processTrigger(int millisecondsCooldown, double threshold, bool useVelocity, AudioFile<double>& infile, AudioFile<double>& samplefile, string outputFileName) {
     // Convert release cooldown time from ms to samples using sample rate 
     int samplesCooldown = (int) (((double)infile.getSampleRate() / 1000.0) * (double) millisecondsCooldown);
     // Prepare output 
@@ -107,7 +122,13 @@ void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double
             }
             if (currentSample >= threshold && cooldown == 0) {
                 int sourceTransientOffset = detectTransient(infile, i, i + samplesCooldown);
-                applySample(sourceTransientOffset, sampleTransientOffset, samplefile, outfile);
+
+                if (useVelocity) {
+                    applySampleWithVelocity(sourceTransientOffset, sampleTransientOffset, samplefile, outfile, infile.samples[channel][sourceTransientOffset]);
+                } else {
+                    applySample(sourceTransientOffset, sampleTransientOffset, samplefile, outfile);
+                }
+
                 triggerCount++;
                 cooldown = samplesCooldown;
             } else {
@@ -134,7 +155,7 @@ void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double
 
 }
 
-int triggerSamples(int millisecondsCooldown, double threshold, std::string filename, std::string samplename, std::string outfilename) {
+int triggerSamples(int millisecondsCooldown, double threshold, bool useVelocity, std::string filename, std::string samplename, std::string outfilename) {
     // Input File
     AudioFile<double> infile;
     if (!infile.load (filename)) {
@@ -151,7 +172,7 @@ int triggerSamples(int millisecondsCooldown, double threshold, std::string filen
     }
     // cout << "File: " << samplename << endl;
     // samplefile.printSummary();
-    processTrigger(millisecondsCooldown, threshold, infile, samplefile, outfilename);
+    processTrigger(millisecondsCooldown, threshold, useVelocity, infile, samplefile, outfilename);
     return 0;
 }
 

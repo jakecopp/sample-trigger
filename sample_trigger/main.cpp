@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
     double threshold = 0.05;
     string outputfilename = "output-audio.wav";
 
-    return triggerSamples(millisecondsCooldown, threshold, filename, samplename, outputfilename);
+    return triggerSamples(millisecondsCooldown, threshold, false, filename, samplename, outputfilename);
 }
 
 /*

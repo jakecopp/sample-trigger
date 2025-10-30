@@ -12,9 +12,11 @@ double getAverageAmplitude(AudioFile<double>& file);
 
 void applySample(int index, int transientOffset, AudioFile<double>& samplefile, AudioFile<float>& outfile);
 
-void processTrigger(int millisecondsCooldown, double threshold, AudioFile<double>& infile, AudioFile<double>& samplefile, std::string outputFileName);
+void applySampleWithVelocity(int index, int transientOffset, AudioFile<double>& samplefile, AudioFile<float>& outfile, double peakValue);
 
-int triggerSamples(int millisecondsCooldown, double threshold, std::string filename, std::string samplename, std::string outfilename);
+void processTrigger(int millisecondsCooldown, double threshold, bool useVelocity, AudioFile<double>& infile, AudioFile<double>& samplefile, std::string outputFileName);
+
+int triggerSamples(int millisecondsCooldown, double threshold, bool useVelocity, std::string filename, std::string samplename, std::string outfilename);
 
 double decibelsFromGain(double gain);
 

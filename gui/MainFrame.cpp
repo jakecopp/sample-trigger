@@ -99,7 +99,7 @@ void MainFrame::OnTriggerButtonClicked(wxCommandEvent& evt) {
 
     wxLogStatus("Triggering samples...");
 
-    triggerSamples(millisecondsCooldown, gainThreshold, sourceFilePath, sampleFilePath, outputFilePath);
+    triggerSamples(millisecondsCooldown, gainThreshold, false, sourceFilePath, sampleFilePath, outputFilePath);
 
     std::cout << sourceFilePath << std::endl;
     std::cout << sampleFilePath << std::endl;
